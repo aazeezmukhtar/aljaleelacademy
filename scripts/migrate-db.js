@@ -1,0 +1,23 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+let dbConfig = {};
+
+if (isProduction || process.env.DATABASE_URL) {
+    // PostgreSQL (Vercel or Supabase)
+    dbConfig = {
+        type: 'postgres',
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+    };
+} else {
+    // Local SQLite (Development)
+    dbConfig = {
+        type: 'sqlite',
+        filename: 'database.sqlite'
+    };
+}
+
+module.exports = dbConfig;
