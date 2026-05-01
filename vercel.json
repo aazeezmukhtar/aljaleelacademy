@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm install",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "express"
+}
