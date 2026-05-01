@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "pm2": "pm2 start app.js --name nexus-sis"
+    "pm2": "pm2 start app.js --name nexus-sis",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -22,13 +23,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
-  }
-}
-{
-  "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "pm2": "pm2 start app.js --name nexus-sis",
-    "test": "echo \"No tests specified\" && exit 0"
   }
 }
