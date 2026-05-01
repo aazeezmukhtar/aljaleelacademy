@@ -7,7 +7,7 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "pm2": "pm2 start app.js --name nexus-sis",
-    "test": "echo \"No tests specified\" && exit 0"
+    "migrate": "node scripts/migrate-db.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -19,7 +19,11 @@
     "express-session": "^1.18.2",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "@vercel/postgres": "^0.8.0",
+    "connect-pg-simple": "^9.0.0",
+    "pg": "^8.11.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
