@@ -12,11 +12,37 @@ const settingsRoutes = require('./routes/settingsRoutes');
 const authRoutes = require('./routes/authRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
+const dotenv = require('dotenv');
+
+dotenv.config();
+
 const { isAuthenticated, injectUser } = require('./middleware/authMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ============= DATABASE CONFIGURATION =============
+const dbConfig = require('./config/database');
+let sessionStore;
+
+if (dbConfig.type === 'postgres') {
+    // PostgreSQL Session Store (Vercel & Supabase)
+    const { Pool } = require('pg');
+    const PostgresStore = require('connect-pg-simple')(session);
+    
+    const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: dbConfig.ssl
+    });
+    
+    sessionStore = new PostgresStore({ pool });
+    console.log('✅ PostgreSQL Session Store initialized');
+} else {
+    // SQLite Session Store (Local Development)
+    const SQLiteStore = require('connect-sqlite3')(session);
+    sessionStore = new SQLiteStore({ db: 'database.sqlite', dir: '.' });
+    console.log('✅ SQLite Session Store initialized');
+}
 
 // View Engine
 app.set('view engine', 'ejs');
@@ -31,11 +57,15 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Session Middleware
 app.use(session({
-    store: new SQLiteStore({ db: 'database.sqlite', dir: '.' }),
-    secret: 'nexus-sis-secret-key-offline-first',
+    store: sessionStore,
+    secret: process.env.SESSION_SECRET || 'nexus-sis-secret-key-offline-first',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 1 week
+    cookie: { 
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true
+    }
 }));
 
 app.use(injectUser);
@@ -73,7 +103,14 @@ app.use('/calendar', require('./routes/calendarRoutes'));
 app.use(injectStudent);
 app.use('/portal', isStudentAuthenticated, portalRoutes);
 
+// Error handler
+app.use((err, req, res, next) => {
+    console.error('🔴 Error:', err);
+    res.status(500).render('error', { error: err.message });
+});
+
 app.listen(PORT, () => {
-    console.log(`Nexus Local SIS running at http://localhost:${PORT}`);
-    console.log(`Mode: LAN Access Only`);
+    console.log(`✅ Nexus Local SIS running at http://localhost:${PORT}`);
+    console.log(`📦 Database Type: ${dbConfig.type.toUpperCase()}`);
+    console.log(`🔒 Mode: ${process.env.NODE_ENV === 'production' ? 'PRODUCTION' : 'DEVELOPMENT'}`);
 });
